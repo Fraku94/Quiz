@@ -9,12 +9,10 @@
     android:id="@+id/swipeContainer">
 
     <android.support.v7.widget.RecyclerView
+        android:paddingTop="35dp"
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:elevation="17dp"
-        android:clipToPadding="false"
-        android:stateListAnimator="@null"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
 
 
