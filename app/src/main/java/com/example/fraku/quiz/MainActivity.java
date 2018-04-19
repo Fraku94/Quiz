@@ -65,9 +65,12 @@ public class MainActivity extends AppCompatActivity {
                     // looping through All Contacts
                     for (int i = 0; i < items.length(); i++) {
                         JSONObject c = items.getJSONObject(i);
-
+                        Log.e(TAG, "Response from url1: " + items);
                         String id = c.getString("id");
+
+                        Log.e(TAG, "Response from url1: " + id);
                         String questions = c.getString("questions");
+                        Log.e(TAG, "Response from url1: " + questions);
                         String createdAt = c.getString("createdAt");
 //                        String address = c.getString("address");
 //                        String gender = c.getString("gender");
