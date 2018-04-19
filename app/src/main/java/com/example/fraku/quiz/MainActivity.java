@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject c = items.getJSONObject(i);
                         Log.e(TAG, "Response from url1: " + items);
                         String id = c.getString("id");
-
+//fgh
                         Log.e(TAG, "Response from url1: " + id);
                         String questions = c.getString("questions");
                         Log.e(TAG, "Response from url1: " + questions);
