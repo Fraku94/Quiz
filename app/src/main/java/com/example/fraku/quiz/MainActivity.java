@@ -1,12 +1,17 @@
 package com.example.fraku.quiz;
+
+
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.Toast;
+
+import com.example.fraku.quiz.Category.CategoryAdapter;
+import com.example.fraku.quiz.Category.CategoryObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,26 +19,77 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private String TAG = MainActivity.class.getSimpleName();
-    private ListView lv;
+
+    private  String Id, Title, Questions, ImageUrl;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mCategoryAdapter;
+    private RecyclerView.LayoutManager mCategoryLayoutMenager;
 
     ArrayList<HashMap<String, String>> contactList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.test_layout);
+        setContentView(R.layout.activity_main);
 
-        contactList = new ArrayList<>();
-        lv = (ListView) findViewById(R.id.list);
 
-        new GetContacts().execute();
+
+                //Ustawienie RecycleView
+        mRecyclerView = findViewById(R.id.recyclerView);
+        mRecyclerView.setNestedScrollingEnabled(false);
+        mRecyclerView.setHasFixedSize(true);
+
+
+        //Ustawienie Adaptera oraz LayoutMenagera. Uzycie Contextu fragmentu
+        mCategoryLayoutMenager = new LinearLayoutManager(getApplicationContext());
+        mRecyclerView.setLayoutManager(mCategoryLayoutMenager);
+        mCategoryAdapter = new CategoryAdapter(getDataSet(),getApplicationContext());
+        mRecyclerView.setAdapter(mCategoryAdapter);
+
+
+
+        //Przypisanie funkicji odswiezania
+        swipeRefreshLayout = findViewById(R.id.swipeContainer);
+
+        //Inicjacja odswierzania
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                clear();
+                new GetCategory().execute();
+
+                mCategoryAdapter = new CategoryAdapter(getDataSet(),getApplicationContext());
+                mRecyclerView.setAdapter(mCategoryAdapter);
+
+            }
+        });
     }
 
-    private class GetContacts extends AsyncTask<Void, Void, Void> {
+
+    //Czyszczenie fragmentu
+    private void clear() {
+        int size = this.resoult.size();
+        this.resoult.clear();
+        mCategoryAdapter.notifyItemRangeChanged(0, size);
+    }
+
+    //Przeslanie do Adaptera Rezultatow
+    private ArrayList<CategoryObject> resoult = new ArrayList<CategoryObject>();
+
+    private List<CategoryObject> getDataSet() {
+
+        new GetCategory().execute();
+
+        return resoult;
+    }
+
+    private class GetCategory extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -44,98 +100,81 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... arg0) {
             HttpHandler sh = new HttpHandler();
-            // Making a request to url and getting response
 
 
-            String url = "http://quiz.o2.pl/api/v1/quizzes/0/1";
-            String jsonStr = sh.makeServiceCall(url);
+                String url = "http://quiz.o2.pl/api/v1/quizzes/0/100";
+                String jsonStr = sh.makeServiceCall(url);
 
-            Log.e(TAG, "Response from url: " + jsonStr);
-            if (jsonStr != null) {
-                try {
-                    JSONObject jsonObj = new JSONObject(jsonStr);
+                Log.e(TAG, "Response from url: " + jsonStr);
+                if (jsonStr != null) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(jsonStr);
 
+                        // JSON Array
+                        JSONArray items = jsonObj.getJSONArray("items");
 
-                    // Getting JSON Array node
-                    JSONArray items = jsonObj.getJSONArray("items");
+                        JSONObject resultObject = (JSONObject) items.get(0);
 
+                        // Pobieranie danych kategorii
+                        for (int i = 0; i < items.length(); i++) {
+                            JSONObject c = items.getJSONObject(i);
+                            Id = c.getString("id");
+                            Log.e(TAG, "ID: " + Id);
 
+                            Title = c.getString("title");
+                            Log.e(TAG, "Tytuł: " + Title);
 
+                            Questions = c.getString("questions");
+                            Log.e(TAG, "Liczba pytań " + Questions);
 
-                    // looping through All Contacts
-                    for (int i = 0; i < items.length(); i++) {
-                        JSONObject c = items.getJSONObject(i);
-                        Log.e(TAG, "Response from url1: " + items);
-                        String id = c.getString("id");
-//fgh
-                        Log.e(TAG, "Response from url1: " + id);
-                        String questions = c.getString("questions");
-                        Log.e(TAG, "Response from url1: " + questions);
-                        String createdAt = c.getString("createdAt");
-//                        String address = c.getString("address");
-//                        String gender = c.getString("gender");
-//
-                        // Phone node is JSON Object
-                        JSONObject category = c.getJSONObject("category");
-//                        String id = category.getString("id");
-                        String name = category.getString("name");
-                        Log.e(TAG, "Response from url1: " + name);
-//                        String office = phone.getString("office");
+                            JSONObject getImage = (JSONObject) resultObject.get("mainPhoto");
 
-                        // tmp hash map for single contact
-                        HashMap<String, String> contact = new HashMap<>();
+                            ImageUrl = getImage.get("url").toString();
+                            Log.e(TAG, " Adres Url zdjecia: " + ImageUrl);
 
-                        // adding each child node to HashMap key => value
-                        contact.put("id", id);
-                        contact.put("questions", questions);
-                        contact.put("createdAt", createdAt);
-                        contact.put("name", name);
-                        // tmp hash map for single contact
+                            //Dodanie zmeinnych do Obiektu (nazwy musza byc takie same jak w Objekcie
+                            CategoryObject object = new CategoryObject(Id, Title, ImageUrl, Questions);
 
-                        Log.e(TAG, "Response from url2: " + name);
-                        // adding each child node to HashMap key => value
+                            //Metoda dodawania do Objektu
+                            resoult.add(object);
 
+                        }
+                    } catch (final JSONException e) {
+                        Log.e(TAG, "Json parsing error: " + e.getMessage());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getApplicationContext(),
+                                        "Json parsing error: " + e.getMessage(),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
 
-
-
-                        contactList.add(contact);
-                        Log.e(TAG, "Response from url3: " + name);
                     }
-                } catch (final JSONException e) {
-                    Log.e(TAG, "Json parsing error: " + e.getMessage());
+
+                } else {
+                    Log.e(TAG, "Couldn't get json from server.");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(),
-                                    "Json parsing error: " + e.getMessage(),
+                                    "Couldn't get json from server. Check LogCat for possible errors!",
                                     Toast.LENGTH_LONG).show();
                         }
                     });
-
                 }
-
-            } else {
-                Log.e(TAG, "Couldn't get json from server.");
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(getApplicationContext(),
-                                "Couldn't get json from server. Check LogCat for possible errors!",
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-
             return null;
         }
 
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            ListAdapter adapter = new SimpleAdapter(MainActivity.this, contactList,
-                    R.layout.list_item, new String[]{ "email","name"},
-                    new int[]{R.id.email, R.id.mobile});
-            lv.setAdapter(adapter);
+
+            //Metoda notujaca zmiany (Wywoluje zapisanie zmiennych)
+            mCategoryAdapter.notifyDataSetChanged();
+
+            //Zatrzymanie animacji wyszukiwania
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 }
