@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.example.fraku.quiz.Object.CategoryObject;
 import com.example.fraku.quiz.R;
 
 import java.util.List;
@@ -42,12 +43,21 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
     @Override
     public void onBindViewHolder(CategoryViewHolder holder, int position) {
 
+        holder.mCategoryId = CategoryList.get(position).getIdCat();
+        holder.mCategoryQuestionNumber = CategoryList.get(position).getLiczbaPyt();
 
-        holder.mTitle.setText(CategoryList.get(position).getTitle());
-        holder.mResult.setText(CategoryList.get(position).getId());
+        holder.mTitle.setText(CategoryList.get(position).getTytulCat());
+        holder.mResult.setText(CategoryList.get(position).getIdCat());
 
         //Sprawdzenie czy wartosc linku to "default" jesli nie ma załadować link i podpiac zdjecie ImageView
         Glide.with(context).load(CategoryList.get(position).getImageUrl()).into(holder.mImage);
+
+//        String url = CategoryList.get(position).getImageUrl();
+//        BitmapFactory.Options bmOptions;
+//        bmOptions = new BitmapFactory.Options();
+//        bmOptions.inSampleSize = 1;
+//        Bitmap bm = loadBitmap(url, bmOptions);
+//        holder.mImage.setImageBitmap(bm);
 
 
     }
@@ -56,4 +66,36 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryViewHolder>{
     public int getItemCount() {
         return this.CategoryList.size();
     }
+
+
+//    public static Bitmap loadBitmap(String URL, BitmapFactory.Options options) {
+//        Bitmap bitmap = null;
+//        InputStream in = null;
+//        try {
+//            in = OpenHttpConnection(URL);
+//            bitmap = BitmapFactory.decodeStream(in, null, options);
+//            in.close();
+//        } catch (IOException e1) {
+//        }
+//        return bitmap;
+//    }
+//
+//    private static InputStream OpenHttpConnection(String strURL)
+//            throws IOException {
+//        InputStream inputStream = null;
+//        URL url = new URL(strURL);
+//        URLConnection conn = url.openConnection();
+//
+//        try {
+//            HttpURLConnection httpConn = (HttpURLConnection) conn;
+//            httpConn.setRequestMethod("GET");
+//            httpConn.connect();
+//
+//            if (httpConn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+//                inputStream = httpConn.getInputStream();
+//            }
+//        } catch (Exception ex) {
+//        }
+//        return inputStream;
+//    }
 }

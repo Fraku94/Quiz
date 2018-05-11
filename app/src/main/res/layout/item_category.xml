@@ -14,9 +14,7 @@
     <ImageView
         android:id="@+id/Image"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/image"
-        android:scaleType="fitXY"
-        android:src="@mipmap/defaut"/>
+        android:layout_height="@dimen/image" />
 
     <TextView
         android:id="@+id/Result"
