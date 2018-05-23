@@ -9,35 +9,46 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.fraku.quiz.QuizActivity;
+import com.example.fraku.quiz.QuizEndActivity;
 import com.example.fraku.quiz.R;
 
 public class CategoryViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
     public TextView mTitle, mResult;
     public ImageView mImage;
-    public String mCategoryId, mCategoryQuestionNumber;
+    public String mCategoryId, mCategoryQuestionNumber, mQuizResult;
+    public int mQuestionNumCurrent, mQuestionNum;
 
     public CategoryViewHolder(View itemView) {
         super(itemView);
         itemView.setOnClickListener(this);
 
-
-        //Tu wpisujesz wszystkie TextView,ImageView,itp jakie dodajesz w item_....xml (tutaj item_liked.xml)
         mTitle = itemView.findViewById(R.id.Title);
         mResult = itemView.findViewById(R.id.Result);
-
         mImage = itemView.findViewById(R.id.Image);
     }
-
 
     @Override
     public void onClick(View view) {
 
-        Intent intent = new Intent(view.getContext() , QuizActivity.class);
-        Bundle b = new Bundle();
-        b.putString("CategoryId", mCategoryId);
-        b.putString("CategoryQuestionNumber", mCategoryQuestionNumber);
-        intent.putExtras(b);
-        view.getContext().startActivity(intent);
+        if (mQuestionNumCurrent == mQuestionNum){
 
+            Intent intent = new Intent(view.getContext() , QuizEndActivity.class);
+            Bundle b = new Bundle();
+            b.putString("CategoryId", mCategoryId);
+            b.putString("CategoryQuestionNumber", mCategoryQuestionNumber);
+            b.putString("Percent", mQuizResult);
+            intent.putExtras(b);
+            view.getContext().startActivity(intent);
+
+        }else {
+
+            Intent intent = new Intent(view.getContext() , QuizActivity.class);
+            Bundle b = new Bundle();
+            b.putString("CategoryId", mCategoryId);
+            b.putString("CategoryQuestionNumber", mCategoryQuestionNumber);
+            intent.putExtras(b);
+            view.getContext().startActivity(intent);
+
+        }
     }
 }

@@ -2,53 +2,32 @@ package com.example.fraku.quiz.Object;
 
 public class QuestionObject {
 
-    private String CatId;
-    private String Pytanie;
-    private String Odpowiedz;
-    private String WynikOpd;
+    private String IdQue;
+    private String TitleQue;
     private String ImageUrl;
-    private String NumerPyt;
-    private String NumerOdp;
+    private String QuestionNum;
 
 
 
-
-    public QuestionObject(String CatId, String Pytanie, String Odpowiedz, String WynikOpd, String ImageUrl, String NumerPyt, String NumerOdp){
-        this.CatId = CatId;
-        this.Pytanie = Pytanie;
-        this.Odpowiedz = Odpowiedz;
-        this.WynikOpd = WynikOpd;
+    public QuestionObject(String IdQue, String TitleQue, String ImageUrl, String QuestionNum){
+        this.IdQue = IdQue;
+        this.TitleQue = TitleQue;
         this.ImageUrl = ImageUrl;
-        this.NumerPyt = NumerPyt;
-        this.NumerOdp = NumerOdp;
+        this.QuestionNum = QuestionNum;
     }
 
-    public String getCatId() {
-        return CatId;
+    public String getIdQue() {
+        return IdQue;
     }
-    public void setCatId(String CatId) {
-        CatId = CatId;
-    }
-
-    public String getPytanie() {
-        return Pytanie;
-    }
-    public void setPytanie(String Pytanie) {
-        Pytanie = Pytanie;
+    public void setIdQue(String IdQue) {
+        IdQue = IdQue;
     }
 
-    public String getOdpowiedz() {
-        return Odpowiedz;
+    public String getTitleQue() {
+        return TitleQue;
     }
-    public void setOdpowiedz(String Questions) {
-        Questions = Questions;
-    }
-
-    public String getWynikOpd() {
-        return WynikOpd;
-    }
-    public void setWynikOpd(String WynikOpd) {
-        WynikOpd = WynikOpd;
+    public void setTitleQue(String TitleQue) {
+        TitleQue = TitleQue;
     }
 
     public String getImageUrl() {
@@ -58,19 +37,11 @@ public class QuestionObject {
         ImageUrl = imageUrl;
     }
 
-    public String getNumerPyt() {
-        return NumerPyt;
+    public String getQuestionNum() {
+        return QuestionNum;
     }
-    public void setNumerPyt(String NumerPyt) {
-        NumerPyt = NumerPyt;
+    public void setQuestionNum(String QuestionNum) {
+        QuestionNum = QuestionNum;
     }
-
-    public String getNumerOdp() {
-        return NumerOdp;
-    }
-    public void setNumerOdp(String NumerOdp) {
-        NumerOdp = NumerOdp;
-    }
-
 
 }

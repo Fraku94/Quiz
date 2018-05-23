@@ -12,21 +12,15 @@
         android:layout_height="wrap_content"
         android:text="@string/title"
         android:textAlignment="center"
-        android:textSize="35dp"/>
+        android:textSize="20dp"/>
 
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/Title" />
 
     <RadioGroup
         android:id="@+id/radioGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/progressBar">
+        android:layout_above="@+id/progressBar"
+        android:paddingBottom="25dp">
 
         <RadioButton
             android:id="@+id/q1"
@@ -34,18 +28,21 @@
             android:layout_height="wrap_content"
             android:text="@string/questions"
             android:textSize="25dp" />
+
         <RadioButton
             android:id="@+id/q2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/questions"
             android:textSize="25dp" />
+
         <RadioButton
             android:id="@+id/q3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/questions"
             android:textSize="25dp" />
+
         <RadioButton
             android:id="@+id/q4"
             android:layout_width="match_parent"
@@ -54,5 +51,12 @@
             android:textSize="25dp" />
 
     </RadioGroup>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
 
 </RelativeLayout>

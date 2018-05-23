@@ -15,9 +15,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.fraku.quiz.Category.CategoryAdapter;
-import com.example.fraku.quiz.Database.DatabaseHandlerCategory;
+import com.example.fraku.quiz.Category.SimpleDividerItemDecoration;
 import com.example.fraku.quiz.Database.DatabaseHandlerQuestion;
-import com.example.fraku.quiz.Object.CategoryObject;
+import com.example.fraku.quiz.Database.DatabaseHandlerAnswer;
+import com.example.fraku.quiz.Database.DatabaseHandlerSettings;
+import com.example.fraku.quiz.Object.AnswerObject;
 import com.example.fraku.quiz.Object.QuestionObject;
 
 import org.json.JSONArray;
@@ -25,21 +27,25 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private String TAG = MainActivity.class.getSimpleName();
 
-    private String IdCat, TytulCat, ImageUrlCat, LiczbaPyt, Pytanie, Odpowiedz, WynikOdp, ImageUrlOdp, NumerPyt, NumerOdp;
+    private String IdQue, TitleQue, ImageUrlCat, QuestionNum, Question, ImageUrlOdp, CurrentQuestionNum, AnswerNum, Answer, QuestionResult;
+
+    private Long lastCheckedMillis;
 
     private SwipeRefreshLayout swipeRefreshLayout;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mCategoryAdapter;
     private RecyclerView.LayoutManager mCategoryLayoutMenager;
 
-    private DatabaseHandlerCategory databaseCategory;
-    private DatabaseHandlerQuestion databaseQuestion;
+    private DatabaseHandlerQuestion databaseCategory;
+    private DatabaseHandlerAnswer databaseQuestion;
+    private DatabaseHandlerSettings databaseSettings;
 
     private  NetworkInfo netInfo;
 
@@ -48,17 +54,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Sprawdzenie dostępu do internetu
-        isOnline();
+        //Przypisanie funkicji odswiezania
+        swipeRefreshLayout = findViewById(R.id.swipeContainer);
 
-        databaseCategory = new DatabaseHandlerCategory(this);
-        databaseQuestion = new DatabaseHandlerQuestion(this);
+        swipeRefreshLayout.setRefreshing(true);
+
+        databaseCategory = new DatabaseHandlerQuestion(this);
+        databaseQuestion = new DatabaseHandlerAnswer(this);
+        databaseSettings = new DatabaseHandlerSettings(this);
 
         //Ustawienie RecycleView
         mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setNestedScrollingEnabled(false);
         mRecyclerView.setHasFixedSize(true);
 
+        //mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
 
         //Ustawienie Adaptera oraz LayoutMenagera. Uzycie Contextu fragmentu
         mCategoryLayoutMenager = new LinearLayoutManager(getApplicationContext());
@@ -66,12 +76,11 @@ public class MainActivity extends AppCompatActivity {
         mCategoryAdapter = new CategoryAdapter(getDataCat(),getApplicationContext());
         mRecyclerView.setAdapter(mCategoryAdapter);
 
+        //Sprawdzenie dostępu do internetu
+        isOnline();
 
-
-        //Przypisanie funkicji odswiezania
-        swipeRefreshLayout = findViewById(R.id.swipeContainer);
-
-        swipeRefreshLayout.setRefreshing(true);
+        //Sprawdzenie daty odswieżenia
+       // getDate();
 
         //Inicjacja odswierzania
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -81,11 +90,13 @@ public class MainActivity extends AppCompatActivity {
                 isOnline();
 
                 if (netInfo != null) {
+
                     clear();
                     new GetCategory().execute();
 
                     mCategoryAdapter = new CategoryAdapter(getDataCat(),getApplicationContext());
                     mRecyclerView.setAdapter(mCategoryAdapter);
+
                 }else if (netInfo == null){
                     Toast.makeText(MainActivity.this,"Brak połączenia z interentem",Toast.LENGTH_SHORT).show();
 
@@ -93,6 +104,70 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void getDate() {
+
+        Calendar cal = Calendar.getInstance();
+        cal.clear(Calendar.HOUR);
+        cal.clear(Calendar.HOUR_OF_DAY);
+        cal.clear(Calendar.MINUTE);
+        cal.clear(Calendar.SECOND);
+        cal.clear(Calendar.MILLISECOND);
+
+        long now = cal.getTimeInMillis();
+
+        Cursor resDate = databaseSettings.getDateSettings();
+
+        if (resDate.getCount() == 0){
+
+            databaseSettings.addSettings(now);
+
+            isOnline();
+
+            if (netInfo != null){
+
+                new GetCategory().execute();
+
+            }else{
+
+                Toast.makeText(MainActivity.this,"Brak połączenia z interentem, włącz internet i zresetuj aplikacje",Toast.LENGTH_LONG).show();
+            }
+        }else if(resDate.moveToPosition(0)) {
+
+            lastCheckedMillis = (resDate.getLong(0));
+
+            long diffMillis = now - lastCheckedMillis;
+            if( diffMillis >= (3600000  * 24) ) {
+
+                databaseSettings.addSettings(now);
+
+                isOnline();
+
+                if (netInfo != null){
+
+                    new GetCategory().execute();
+
+                }else{
+
+                    Toast.makeText(MainActivity.this,"Brak połączenia z interentem, włącz internet i zresetuj aplikacje",Toast.LENGTH_LONG).show();
+                }
+
+            } else {
+
+                // too early
+                Cursor res = databaseCategory.getAllQuestionData();
+
+                while (res.moveToNext()) {
+                    QuestionObject object = new QuestionObject(res.getString(0), res.getString(1), res.getString(2), res.getString(3));
+
+                    //Metoda dodawania do Objektu
+                    resoult.add(object);
+
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            }
+        }
     }
 
     public boolean isOnline() {
@@ -111,17 +186,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Przeslanie do Adaptera Rezultatow
-    private ArrayList<CategoryObject> resoult = new ArrayList<CategoryObject>();
+    private ArrayList<QuestionObject> resoult = new ArrayList<QuestionObject>();
 
 
-    private List<CategoryObject> getDataCat() {
-
-        //uruchomienie getcategory
+    private List<QuestionObject> getDataCat() {
         new GetCategory().execute();
-
         return resoult;
     }
-
 
     private class GetCategory extends AsyncTask<Void, Void, Void> {
 
@@ -136,9 +207,11 @@ public class MainActivity extends AppCompatActivity {
 
             if (netInfo != null) {
 
+                databaseQuestion.onClear();
+
                 HttpHandler sh = new HttpHandler();
 
-                //Link do kategorii
+                //Link do Quizu
                 String url = "http://quiz.o2.pl/api/v1/quizzes/0/100";
                 String jsonStr = sh.makeServiceCall(url);
 
@@ -146,21 +219,21 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         JSONObject jsonObj = new JSONObject(jsonStr);
 
-                        // JSON Array kategorii
-                        JSONArray kategoria = jsonObj.getJSONArray("items");
+                        // JSON Array Quizu
+                        JSONArray Quiz = jsonObj.getJSONArray("items");
 
                         //Przejscie do JSONObject
-                        JSONObject resultObject = (JSONObject) kategoria.get(0);
+                        JSONObject resultObject = (JSONObject) Quiz.get(0);
 
                         // Pobieranie
-                        for (int i = 0; i < kategoria.length(); i++) {
-                            JSONObject c = kategoria.getJSONObject(i);
+                        for (int i = 0; i < Quiz.length(); i++) {
+                            JSONObject c = Quiz.getJSONObject(i);
 
-                            //ID kategorii
-                            IdCat = c.getString("id");
+                            //ID Quizu
+                            IdQue = c.getString("id");
 
                             //Link do szczegołów
-                            String urlq = "http://quiz.o2.pl/api/v1/quiz/"+IdCat+"/0";
+                            String urlq = "http://quiz.o2.pl/api/v1/quiz/"+ IdQue +"/0";
 
                             String jsonStrPyt = sh.makeServiceCall(urlq);
 
@@ -169,74 +242,74 @@ public class MainActivity extends AppCompatActivity {
                                     JSONObject jsonObjPyt = new JSONObject(jsonStrPyt);
 
                                     // JSON Array pytań
-                                    JSONArray Pytania = jsonObjPyt.getJSONArray("questions");
+                                    JSONArray Que = jsonObjPyt.getJSONArray("questions");
 
-                                    JSONObject resultObjectPyt = (JSONObject) Pytania.get(0);
+                                    JSONObject resultObjectAns = (JSONObject) Que.get(0);
 
-                                    JSONArray Odpowiedzi = resultObjectPyt.getJSONArray("answers");
+                                    // Pobieranie danych pytan
+                                    for (int q = 0; q < Que.length(); q++) {
 
-                                    Log.e(TAG, "Odpowiedzi:  " + Odpowiedzi);
+                                        JSONObject a = Que.getJSONObject(q);
 
-                                    // Pobieranie danych kategorii
-                                    for (int q = 0; q < Pytania.length(); q++) {
-                                        JSONObject a = Pytania.getJSONObject(q);
+                                        Question = a.getString("text");
+                                        Log.e(TAG, "Question:  " + Question);
 
-                                        Pytanie = a.getString("text");
-                                        Log.e(TAG, "Pytanie:  " + Pytanie);
+                                        CurrentQuestionNum = a.getString("order");
+                                        Log.e(TAG, "CurrentQuestionNum:  " + CurrentQuestionNum);
 
-                                        NumerPyt = a.getString("order");
-                                        Log.e(TAG, "NumerPyt:  " + NumerPyt);
+                                        JSONObject ImageUrlAnserw = (JSONObject) a.get("image");
 
-                                        for (int n = 0; n < Odpowiedzi.length(); n++) {
-                                            JSONObject v = Odpowiedzi.getJSONObject(n);
+                                        ImageUrlCat = ImageUrlAnserw.get("url").toString();
 
-                                            Odpowiedz = v.get("text").toString();
-                                            Log.e(TAG, "  Odpowiedz:   " + Odpowiedz);
+                                        if (a.isNull("url")) {
 
-                                            NumerOdp = a.getString("order");
-                                            Log.e(TAG, "NumerOdp:  " + NumerOdp);
+                                            ImageUrlOdp = "0";
 
+                                        } else {
 
-
-                                            if (v.isNull("url")){
-
-                                                ImageUrlOdp = "0";
-
-                                            }else{
-
-                                                ImageUrlOdp = v.get("url").toString();
-                                                Log.e(TAG, " ImageUrlOdp           : " + ImageUrlOdp);
-
-                                            }
-
-                                            if (v.isNull("isCorrect")){
-
-                                                WynikOdp = "0";
-                                                Log.e(TAG, "Correct:   " + WynikOdp);
-
-                                            }else{
-
-                                                WynikOdp = v.getString("isCorrect");
-                                                Log.e(TAG, "Correct:   " + WynikOdp);
-
-                                            }
-
-
+                                            ImageUrlOdp = a.get("url").toString();
+                                            Log.e(TAG, " ImageUrlOdp           : " + ImageUrlOdp);
                                         }
 
-//                                            for (int m = 0; m < image.length(); m++) {
-//                                                JSONObject x = image.getJSONObject(m);
-//
-//                                                ImageUrlQue = x.get("url").toString();
-//                                                Log.e(TAG, "  ImageUrlQue:   " + ImageUrlQue);
-//
-//                                            }
-                                            //Dodanie zmeinnych do Obiektu (nazwy musza byc takie same jak w Objekcie
+                                        JSONArray Ans = a.getJSONArray("answers");
 
-                                            databaseQuestion.addQuestion(new QuestionObject(IdCat, Pytanie, Odpowiedz, WynikOdp, ImageUrlOdp, NumerPyt, NumerOdp));
+                                        Log.e(TAG, "Odpowiedzi:  " + Ans);
 
+                                        int n;
+                                        for (n = 0; n < Ans.length(); n++) {
+                                            JSONObject v = Ans.getJSONObject(n);
+
+                                            Answer = v.get("text").toString();
+                                            Log.e(TAG, "  Answer:   " + Answer);
+
+                                            AnswerNum = v.getString("order");
+                                            Log.e(TAG, "AnswerNum:  " + AnswerNum);
+
+
+                                            if (v.isNull("isCorrect")) {
+
+                                                QuestionResult = "0";
+                                                Log.e(TAG, "Correct:   " + QuestionResult);
+
+                                            } else {
+
+                                                QuestionResult = v.getString("isCorrect");
+                                                Log.e(TAG, "Correct:   " + QuestionResult);
+                                            }
+
+                                            Log.e("wczytanie", "IdQue:   " + IdQue);
+                                            Log.e("wczytanie", "CurrentQuestionNum:   " + CurrentQuestionNum);
+                                            Log.e("wczytanie", "Question:   " + Question);
+                                            Log.e("wczytanie", "Answer:   " + Answer);
+                                            Log.e("wczytanie", "QuestionResult:   " + QuestionResult);
+                                            Log.e("wczytanie", "ImageUrlOdp:   " + ImageUrlOdp);
+                                            Log.e("wczytanie", "AnswerNum:   " + AnswerNum);
+
+                                            Log.e("wczytanie", "-----------------------------------------------------" );
+
+                                            databaseQuestion.addAnswer(new AnswerObject(IdQue, Question, Answer, QuestionResult, ImageUrlOdp, CurrentQuestionNum, AnswerNum));
+                                        }
                                     }
-
                                 } catch (final JSONException e) {
                                     Log.e(TAG, "Json parsing error: " + e.getMessage());
                                     runOnUiThread(new Runnable() {
@@ -247,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
                                                     Toast.LENGTH_LONG).show();
                                         }
                                     });
-
                                 }
 
                             } else {
@@ -262,21 +334,21 @@ public class MainActivity extends AppCompatActivity {
                                 });
                             }
 
-                            TytulCat = c.getString("title");
-                            Log.e(TAG, "TytulCat: " + TytulCat);
+                            TitleQue = c.getString("title");
+                            Log.e(TAG, "TitleQue: " + TitleQue);
 
-                            LiczbaPyt = c.getString("questions");
-                            Log.e(TAG, "Liczba pytań " + LiczbaPyt);
+                            QuestionNum = c.getString("questions");
+                            Log.e(TAG, "Liczba pytań " + QuestionNum);
 
-                            JSONObject getImage = (JSONObject) resultObject.get("mainPhoto");
+                            JSONObject ImageQuiz = (JSONObject) c.get("mainPhoto");
 
-                            ImageUrlCat = getImage.get("url").toString();
+                            ImageUrlCat = ImageQuiz.get("url").toString();
                             Log.e(TAG, " Adres Url zdjecia: " + ImageUrlCat);
 
                             //Dodanie zmeinnych do Obiektu (nazwy musza byc takie same jak w Objekcie
-                            CategoryObject object = new CategoryObject(IdCat, TytulCat, ImageUrlCat, LiczbaPyt);
+                            QuestionObject object = new QuestionObject(IdQue, TitleQue, ImageUrlCat, QuestionNum);
 
-                            databaseCategory.addCategory(new CategoryObject(IdCat, TytulCat, ImageUrlCat, LiczbaPyt));
+                            databaseCategory.addQuestion(new QuestionObject(IdQue, TitleQue, ImageUrlCat, QuestionNum));
 
                             //Metoda dodawania do Objektu
                             resoult.add(object);
@@ -311,10 +383,10 @@ public class MainActivity extends AppCompatActivity {
             }else if (netInfo == null){
 
 
-                Cursor res = databaseCategory.getAllData();
+                Cursor res = databaseCategory.getAllQuestionData();
 
                 while (res.moveToNext()) {
-                    CategoryObject object = new CategoryObject(res.getString(0), res.getString(1), res.getString(2), res.getString(3));
+                    QuestionObject object = new QuestionObject(res.getString(0), res.getString(1), res.getString(2), res.getString(3));
 
                     //Metoda dodawania do Objektu
                     resoult.add(object);
