@@ -3,6 +3,7 @@ package com.example.fraku.quiz;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -14,8 +15,8 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.fraku.quiz.Category.CategoryAdapter;
-import com.example.fraku.quiz.Category.SimpleDividerItemDecoration;
+import com.example.fraku.quiz.Question.QuestionAdapter;
+import com.example.fraku.quiz.Question.SimpleDividerItemDecoration;
 import com.example.fraku.quiz.Database.DatabaseHandlerQuestion;
 import com.example.fraku.quiz.Database.DatabaseHandlerAnswer;
 import com.example.fraku.quiz.Database.DatabaseHandlerSettings;
@@ -43,24 +44,28 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.Adapter mCategoryAdapter;
     private RecyclerView.LayoutManager mCategoryLayoutMenager;
 
-    private DatabaseHandlerQuestion databaseCategory;
-    private DatabaseHandlerAnswer databaseQuestion;
+    private DatabaseHandlerQuestion databaseQuestion;
+    private DatabaseHandlerAnswer databaseAnswer;
     private DatabaseHandlerSettings databaseSettings;
 
     private  NetworkInfo netInfo;
+
+    private   Bitmap theBitmap = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
         //Przypisanie funkicji odswiezania
         swipeRefreshLayout = findViewById(R.id.swipeContainer);
 
         swipeRefreshLayout.setRefreshing(true);
 
-        databaseCategory = new DatabaseHandlerQuestion(this);
-        databaseQuestion = new DatabaseHandlerAnswer(this);
+        databaseQuestion = new DatabaseHandlerQuestion(this);
+        databaseAnswer = new DatabaseHandlerAnswer(this);
         databaseSettings = new DatabaseHandlerSettings(this);
 
         //Ustawienie RecycleView
@@ -68,19 +73,22 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setNestedScrollingEnabled(false);
         mRecyclerView.setHasFixedSize(true);
 
-        //mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
+
+
+
+        mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(this));
 
         //Ustawienie Adaptera oraz LayoutMenagera. Uzycie Contextu fragmentu
         mCategoryLayoutMenager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(mCategoryLayoutMenager);
-        mCategoryAdapter = new CategoryAdapter(getDataCat(),getApplicationContext());
+        mCategoryAdapter = new QuestionAdapter(getDataCat(),getApplicationContext());
         mRecyclerView.setAdapter(mCategoryAdapter);
 
         //Sprawdzenie dostępu do internetu
         isOnline();
 
         //Sprawdzenie daty odswieżenia
-       // getDate();
+        getDate();
 
         //Inicjacja odswierzania
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -94,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                     clear();
                     new GetCategory().execute();
 
-                    mCategoryAdapter = new CategoryAdapter(getDataCat(),getApplicationContext());
+                    mCategoryAdapter = new QuestionAdapter(getDataCat(),getApplicationContext());
                     mRecyclerView.setAdapter(mCategoryAdapter);
 
                 }else if (netInfo == null){
@@ -104,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+
     }
 
     private void getDate() {
@@ -123,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
             databaseSettings.addSettings(now);
 
+            Log.e("Data2", "now " + now);
             isOnline();
 
             if (netInfo != null){
@@ -138,8 +149,8 @@ public class MainActivity extends AppCompatActivity {
             lastCheckedMillis = (resDate.getLong(0));
 
             long diffMillis = now - lastCheckedMillis;
-            if( diffMillis >= (3600000  * 24) ) {
 
+            if( diffMillis >= (3600000  * 24) ) {
                 databaseSettings.addSettings(now);
 
                 isOnline();
@@ -156,16 +167,16 @@ public class MainActivity extends AppCompatActivity {
             } else {
 
                 // too early
-                Cursor res = databaseCategory.getAllQuestionData();
+                Cursor res = databaseQuestion.getAllQuestionData();
 
                 while (res.moveToNext()) {
                     QuestionObject object = new QuestionObject(res.getString(0), res.getString(1), res.getString(2), res.getString(3));
 
                     //Metoda dodawania do Objektu
                     resoult.add(object);
-
-                    swipeRefreshLayout.setRefreshing(false);
                 }
+
+                swipeRefreshLayout.setRefreshing(false);
             }
         }
     }
@@ -190,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private List<QuestionObject> getDataCat() {
-        new GetCategory().execute();
+       // new GetCategory().execute();
         return resoult;
     }
 
@@ -207,7 +218,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (netInfo != null) {
 
-                databaseQuestion.onClear();
+                databaseQuestion.Clear();
+                databaseAnswer.onClear();
 
                 HttpHandler sh = new HttpHandler();
 
@@ -307,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
 
                                             Log.e("wczytanie", "-----------------------------------------------------" );
 
-                                            databaseQuestion.addAnswer(new AnswerObject(IdQue, Question, Answer, QuestionResult, ImageUrlOdp, CurrentQuestionNum, AnswerNum));
+                                            databaseAnswer.addAnswer(new AnswerObject(IdQue, Question, Answer, QuestionResult, ImageUrlOdp, CurrentQuestionNum, AnswerNum));
                                         }
                                     }
                                 } catch (final JSONException e) {
@@ -348,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
                             //Dodanie zmeinnych do Obiektu (nazwy musza byc takie same jak w Objekcie
                             QuestionObject object = new QuestionObject(IdQue, TitleQue, ImageUrlCat, QuestionNum);
 
-                            databaseCategory.addQuestion(new QuestionObject(IdQue, TitleQue, ImageUrlCat, QuestionNum));
+                            databaseQuestion.addQuestion(new QuestionObject(IdQue, TitleQue, ImageUrlCat, QuestionNum));
 
                             //Metoda dodawania do Objektu
                             resoult.add(object);
@@ -383,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
             }else if (netInfo == null){
 
 
-                Cursor res = databaseCategory.getAllQuestionData();
+                Cursor res = databaseQuestion.getAllQuestionData();
 
                 while (res.moveToNext()) {
                     QuestionObject object = new QuestionObject(res.getString(0), res.getString(1), res.getString(2), res.getString(3));

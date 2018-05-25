@@ -52,7 +52,6 @@ public class DatabaseHandlerQuestion extends SQLiteOpenHelper {
     //Adding new contact
     public void addQuestion(QuestionObject questionObject) {
         SQLiteDatabase db = this.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(KEY_ID, questionObject.getIdQue());
         values.put(KEY_TITLE, questionObject.getTitleQue());
@@ -69,4 +68,13 @@ public class DatabaseHandlerQuestion extends SQLiteOpenHelper {
         Cursor AllQuestion = db.rawQuery("SELECT * FROM " + TABLE_QUESTION, null);
         return AllQuestion;
     }
+
+    public void Clear(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_QUESTION);
+
+        //Create table again
+        onCreate(db);
+    }
+
 }

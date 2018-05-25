@@ -74,7 +74,7 @@ public class DatabaseHandlerStats extends SQLiteOpenHelper {
 
     public Cursor getResultStats(String QueId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor ResultStats = db.rawQuery(" SELECT " + KEY_PERCENT + ", " + KEY_PROGRESS + " FROM "
+        Cursor ResultStats = db.rawQuery(" SELECT " + KEY_PERCENT + ", " + KEY_PROGRESS + ", " + KEY_GOOD_ANSWER + " FROM "
                 + TABLE_STATS + " WHERE " + KEY_ID + " IS " + QueId, null);
 
         return ResultStats;

@@ -179,7 +179,7 @@ public class QuizActivity extends AppCompatActivity {
         super.onStop();
 
         if (CurrentQuestion <= QuestionNum){
-            Percent = (GoodAnswer *100)/ QuestionNum;
+            Percent = (CurrentQuestion *100)/ QuestionNum;
             databaseStats.removeSaveQuiz(CatId);
             databaseStats.addStats(new StatsObject(CatId, CurrentQuestion, GoodAnswer, BadAnswer, Percent));
         }
@@ -190,10 +190,16 @@ public class QuizActivity extends AppCompatActivity {
         super.onPause();
 
         if (CurrentQuestion <= QuestionNum){
-            Percent = (GoodAnswer *100)/ QuestionNum;
+            Percent = (CurrentQuestion *100)/ QuestionNum;
             databaseStats.removeSaveQuiz(CatId);
             databaseStats.addStats(new StatsObject(CatId, CurrentQuestion, GoodAnswer, BadAnswer, Percent));
         }
+
+        Intent endIntent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(endIntent);
+        finish();
+        return;
+
     }
 
     @Override

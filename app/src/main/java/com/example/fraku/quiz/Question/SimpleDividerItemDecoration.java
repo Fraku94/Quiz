@@ -1,4 +1,4 @@
-package com.example.fraku.quiz.Category;
+package com.example.fraku.quiz.Question;
 
 import android.content.Context;
 import android.graphics.Canvas;
