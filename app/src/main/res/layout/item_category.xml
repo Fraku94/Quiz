@@ -1,29 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/image">
-    <TextView
-        android:id="@+id/Title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/title"
-        android:textAlignment="center"
-        android:textSize="35dp"/>
-    <ImageView
-        android:id="@+id/Image"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/image"
-        android:scaleType="fitXY"
-        android:src="@drawable/ic_launcher_foreground"/>
+    android:layout_height="@dimen/image"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:minHeight="@dimen/list_item_height"
+    android:background="@color/white">
 
-    <TextView
-        android:id="@+id/Result"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:text="@string/result"
-        android:textAlignment="center"
-        android:textSize="35dp"/>
+        <ImageView
+            android:id="@+id/Image"
+            android:layout_width="@dimen/image"
+            android:layout_height="@dimen/image"
+            android:fitsSystemWindows="true"
+            android:scaleType="centerCrop"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:orientation="vertical"
+            android:layout_toRightOf="@+id/Image"
+            android:paddingLeft="10dp"
+            tools:background="@color/white">
+
+                <TextView
+                    android:id="@+id/Title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    tools:hint="@string/title"
+                    android:textStyle="normal"
+                    android:textAppearance="?android:textAppearanceListItemSmall"
+                    android:textColor="@android:color/black"/>
+
+                <TextView
+                    android:id="@+id/Result"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    tools:hint="@string/result"
+                    android:textStyle="normal"
+                    android:textAppearance="?android:textAppearanceListItemSmall"
+                    android:textColor="@android:color/black"/>
+
+        </LinearLayout>
 
 </RelativeLayout>
+

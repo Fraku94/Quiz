@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">Quiz</string>
     <string name="title">Tytuł</string>
-    <string name="result">Wynik</string>
-    <string name="questions">Pytanie</string>
+    <string name="result">Wynik</string
+    <string name="questions">Question</string>
     <string name="Yeaa">Brawo odpowiedziałeś na :</string>
+    <string name="Grats1">Brawo !</string>
+    <string name="Grats2">Odpowiedziałeś dobrze na :</string>
+    <string name="Grats3">Pytań</string>
+
 </resources>
