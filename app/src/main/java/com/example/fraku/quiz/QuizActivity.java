@@ -59,7 +59,7 @@ public class QuizActivity extends AppCompatActivity {
         QuestionNum = Integer.parseInt(getIntent().getExtras().getString("CategoryQuestionNumber"));
 
         mProgresBar.setMax(QuestionNum);
-        
+
         CurrentQuestion = 1;
         GoodAnswer = 0;
         BadAnswer = 0;
